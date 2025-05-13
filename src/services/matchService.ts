@@ -1,3 +1,4 @@
+
 import { Match, MatchStatus, Team } from "../types/match";
 
 // Get a formatted date string (YYYY-MM-DD) for a specific date
@@ -22,29 +23,39 @@ export const getDates = () => {
   };
 };
 
-// Teams data
-const teams = [
-  { id: "team1", name: "Manchester United", logo: "https://media.api-sports.io/football/teams/33.png" },
-  { id: "team2", name: "Arsenal", logo: "https://media.api-sports.io/football/teams/42.png" },
-  { id: "team3", name: "Barcelona", logo: "https://media.api-sports.io/football/teams/529.png" },
-  { id: "team4", name: "Real Madrid", logo: "https://media.api-sports.io/football/teams/541.png" },
-  { id: "team5", name: "Bayern Munich", logo: "https://media.api-sports.io/football/teams/157.png" },
-  { id: "team6", name: "Borussia Dortmund", logo: "https://media.api-sports.io/football/teams/165.png" },
-  { id: "team7", name: "Liverpool", logo: "https://media.api-sports.io/football/teams/40.png" },
-  { id: "team8", name: "Manchester City", logo: "https://media.api-sports.io/football/teams/50.png" },
-  { id: "team9", name: "Juventus", logo: "https://media.api-sports.io/football/teams/496.png" },
-  { id: "team10", name: "Inter Milan", logo: "https://media.api-sports.io/football/teams/505.png" },
-  { id: "team11", name: "PSG", logo: "https://media.api-sports.io/football/teams/85.png" },
-  { id: "team12", name: "Lyon", logo: "https://media.api-sports.io/football/teams/80.png" },
-  { id: "team13", name: "Chelsea", logo: "https://media.api-sports.io/football/teams/49.png" },
-  { id: "team14", name: "Tottenham", logo: "https://media.api-sports.io/football/teams/47.png" },
-  { id: "team15", name: "AC Milan", logo: "https://media.api-sports.io/football/teams/489.png" },
-  { id: "team16", name: "Roma", logo: "https://media.api-sports.io/football/teams/497.png" },
-  { id: "team17", name: "Atletico Madrid", logo: "https://media.api-sports.io/football/teams/530.png" },
-  { id: "team18", name: "Sevilla", logo: "https://media.api-sports.io/football/teams/536.png" },
-  { id: "team19", name: "Monaco", logo: "https://media.api-sports.io/football/teams/91.png" },
-  { id: "team20", name: "Napoli", logo: "https://media.api-sports.io/football/teams/492.png" }
-];
+// Teams data with their respective leagues
+const teams = {
+  premierLeague: [
+    { id: "team1", name: "Manchester United", logo: "https://media.api-sports.io/football/teams/33.png" },
+    { id: "team2", name: "Arsenal", logo: "https://media.api-sports.io/football/teams/42.png" },
+    { id: "team7", name: "Liverpool", logo: "https://media.api-sports.io/football/teams/40.png" },
+    { id: "team8", name: "Manchester City", logo: "https://media.api-sports.io/football/teams/50.png" },
+    { id: "team13", name: "Chelsea", logo: "https://media.api-sports.io/football/teams/49.png" },
+    { id: "team14", name: "Tottenham", logo: "https://media.api-sports.io/football/teams/47.png" }
+  ],
+  laLiga: [
+    { id: "team3", name: "Barcelona", logo: "https://media.api-sports.io/football/teams/529.png" },
+    { id: "team4", name: "Real Madrid", logo: "https://media.api-sports.io/football/teams/541.png" },
+    { id: "team17", name: "Atletico Madrid", logo: "https://media.api-sports.io/football/teams/530.png" },
+    { id: "team18", name: "Sevilla", logo: "https://media.api-sports.io/football/teams/536.png" }
+  ],
+  bundesliga: [
+    { id: "team5", name: "Bayern Munich", logo: "https://media.api-sports.io/football/teams/157.png" },
+    { id: "team6", name: "Borussia Dortmund", logo: "https://media.api-sports.io/football/teams/165.png" }
+  ],
+  serieA: [
+    { id: "team9", name: "Juventus", logo: "https://media.api-sports.io/football/teams/496.png" },
+    { id: "team10", name: "Inter Milan", logo: "https://media.api-sports.io/football/teams/505.png" },
+    { id: "team15", name: "AC Milan", logo: "https://media.api-sports.io/football/teams/489.png" },
+    { id: "team16", name: "Roma", logo: "https://media.api-sports.io/football/teams/497.png" },
+    { id: "team20", name: "Napoli", logo: "https://media.api-sports.io/football/teams/492.png" }
+  ],
+  ligue1: [
+    { id: "team11", name: "PSG", logo: "https://media.api-sports.io/football/teams/85.png" },
+    { id: "team12", name: "Lyon", logo: "https://media.api-sports.io/football/teams/80.png" },
+    { id: "team19", name: "Monaco", logo: "https://media.api-sports.io/football/teams/91.png" }
+  ]
+};
 
 // Competitions data
 const competitions = [
@@ -140,50 +151,37 @@ function determineMatchStatus(matchTimeStr: string, date: string): {status: Matc
   return { status: "UPCOMING" };
 }
 
-// Generate matches for a specific date
-function generateMatchesForDate(date: string, numberOfMatches: number): Match[] {
-  const shuffledTeams = shuffleArray([...teams]);
-  const shuffledCompetitions = shuffleArray([...competitions]);
+// Function to create league matches (teams from same league)
+function createLeagueMatches(leagueTeams: any[], competitionId: string, date: string, count: number): Match[] {
+  const shuffledTeams = shuffleArray([...leagueTeams]);
+  const matches: Match[] = [];
+  const competition = competitions.find(comp => comp.id === competitionId)!;
   const shuffledStadiums = shuffleArray([...stadiums]);
   const shuffledReferees = shuffleArray([...referees]);
+
+  // Make sure we have enough teams for the requested matches
+  const maxPossibleMatches = Math.floor(shuffledTeams.length / 2);
+  const matchesToCreate = Math.min(count, maxPossibleMatches);
   
-  const matches: Match[] = [];
-  
-  for (let i = 0; i < numberOfMatches && i < Math.floor(shuffledTeams.length / 2); i++) {
+  for (let i = 0; i < matchesToCreate; i++) {
     const homeTeamIndex = i * 2;
     const awayTeamIndex = i * 2 + 1;
     
-    // Get random competition, stadium and referee
-    const competition = shuffledCompetitions[i % shuffledCompetitions.length];
+    // Get random stadium and referee
     const stadium = shuffledStadiums[i % shuffledStadiums.length];
     const referee = shuffledReferees[i % shuffledReferees.length];
     
-    // Get suitable match time based on date
-    let matchTime: string;
-    if (date < getFormattedDate(new Date())) {
-      // Yesterday's matches spread throughout the day
-      matchTime = getRandomTime(12, 21);
-    } else if (date > getFormattedDate(new Date())) {
-      // Tomorrow's matches spread throughout the day
-      matchTime = getRandomTime(12, 21);
-    } else {
-      // Today's matches, some in past, some now, some in future
-      matchTime = getRandomTime(10, 22);
-    }
+    // Get suitable match time
+    let matchTime = getRandomTime(12, 21);
     
     // Determine match status and scores
     const { status, homeScore, awayScore } = determineMatchStatus(matchTime, date);
     
-    // Create team objects with scores if applicable
-    const homeTeam: Team = { 
-      ...shuffledTeams[homeTeamIndex],
-    };
+    // Create team objects
+    const homeTeam: Team = { ...shuffledTeams[homeTeamIndex] };
+    const awayTeam: Team = { ...shuffledTeams[awayTeamIndex] };
     
-    const awayTeam: Team = { 
-      ...shuffledTeams[awayTeamIndex],
-    };
-    
-    // Add scores if they exist (for LIVE or FINISHED matches)
+    // Add scores if applicable
     if (homeScore !== undefined) {
       homeTeam.score = homeScore;
     }
@@ -193,20 +191,123 @@ function generateMatchesForDate(date: string, numberOfMatches: number): Match[] 
     }
     
     matches.push({
-      id: `${date}-${i + 1}`,
-      homeTeam: homeTeam,
-      awayTeam: awayTeam,
-      date: date,
+      id: `${date}-${competitionId}-${i + 1}`,
+      homeTeam,
+      awayTeam,
+      date,
       time: matchTime,
-      status: status,
-      competition: competition,
-      stadium: stadium,
-      referee: referee
+      status,
+      competition,
+      stadium,
+      referee
     });
   }
   
+  return matches;
+}
+
+// Function to create Champions League matches (teams from different leagues)
+function createChampionsLeagueMatches(date: string, count: number): Match[] {
+  // Get all teams across leagues
+  const allTeams = [
+    ...teams.premierLeague,
+    ...teams.laLiga,
+    ...teams.bundesliga,
+    ...teams.serieA,
+    ...teams.ligue1
+  ];
+  
+  const shuffledTeams = shuffleArray([...allTeams]);
+  const matches: Match[] = [];
+  const competition = competitions.find(comp => comp.id === "comp6")!;
+  const shuffledStadiums = shuffleArray([...stadiums]);
+  const shuffledReferees = shuffleArray([...referees]);
+
+  // Make sure we have enough teams for the requested matches
+  const maxPossibleMatches = Math.floor(shuffledTeams.length / 2);
+  const matchesToCreate = Math.min(count, maxPossibleMatches);
+  
+  for (let i = 0; i < matchesToCreate; i++) {
+    const homeTeamIndex = i * 2;
+    const awayTeamIndex = i * 2 + 1;
+    
+    // Get random stadium and referee
+    const stadium = shuffledStadiums[i % shuffledStadiums.length];
+    const referee = shuffledReferees[i % shuffledReferees.length];
+    
+    // Get suitable match time
+    let matchTime = getRandomTime(12, 21);
+    
+    // Determine match status and scores
+    const { status, homeScore, awayScore } = determineMatchStatus(matchTime, date);
+    
+    // Create team objects
+    const homeTeam: Team = { ...shuffledTeams[homeTeamIndex] };
+    const awayTeam: Team = { ...shuffledTeams[awayTeamIndex] };
+    
+    // Add scores if applicable
+    if (homeScore !== undefined) {
+      homeTeam.score = homeScore;
+    }
+    
+    if (awayScore !== undefined) {
+      awayTeam.score = awayScore;
+    }
+    
+    matches.push({
+      id: `${date}-CL-${i + 1}`,
+      homeTeam,
+      awayTeam,
+      date,
+      time: matchTime,
+      status,
+      competition,
+      stadium,
+      referee
+    });
+  }
+  
+  return matches;
+}
+
+// Generate all matches data dynamically
+let allMatches: Match[];
+
+function generateAllMatches(): Match[] {
+  const dates = getDates();
+  let matches: Match[] = [];
+  
+  // Yesterday matches
+  matches = matches.concat(
+    createLeagueMatches(teams.premierLeague, "comp1", dates.yesterday, 1),
+    createLeagueMatches(teams.laLiga, "comp2", dates.yesterday, 1),
+    createLeagueMatches(teams.serieA, "comp4", dates.yesterday, 1),
+    createChampionsLeagueMatches(dates.yesterday, 2)
+  );
+  
+  // Today matches
+  matches = matches.concat(
+    createLeagueMatches(teams.premierLeague, "comp1", dates.today, 2),
+    createLeagueMatches(teams.bundesliga, "comp3", dates.today, 1),
+    createLeagueMatches(teams.ligue1, "comp5", dates.today, 1),
+    createChampionsLeagueMatches(dates.today, 2)
+  );
+  
+  // Tomorrow matches
+  matches = matches.concat(
+    createLeagueMatches(teams.laLiga, "comp2", dates.tomorrow, 1),
+    createLeagueMatches(teams.serieA, "comp4", dates.tomorrow, 1),
+    createLeagueMatches(teams.bundesliga, "comp3", dates.tomorrow, 1),
+    createChampionsLeagueMatches(dates.tomorrow, 1)
+  );
+  
   // Sort matches by time
   return matches.sort((a, b) => {
+    // First sort by date
+    if (a.date < b.date) return -1;
+    if (a.date > b.date) return 1;
+    
+    // Then sort by time
     const timeA = a.time.split(':').map(Number);
     const timeB = b.time.split(':').map(Number);
     
@@ -215,19 +316,6 @@ function generateMatchesForDate(date: string, numberOfMatches: number): Match[] 
     }
     return timeA[1] - timeB[1];
   });
-}
-
-// Generate all matches data dynamically
-let allMatches: Match[];
-
-function generateAllMatches(): Match[] {
-  const dates = getDates();
-  
-  const yesterdayMatches = generateMatchesForDate(dates.yesterday, 6);
-  const todayMatches = generateMatchesForDate(dates.today, 8);
-  const tomorrowMatches = generateMatchesForDate(dates.tomorrow, 6);
-  
-  return [...yesterdayMatches, ...todayMatches, ...tomorrowMatches];
 }
 
 // Initialize matches
@@ -259,3 +347,4 @@ export const getTomorrowMatches = (): Match[] => {
 export const getMatchById = (id: string): Match | undefined => {
   return allMatches.find(match => match.id === id);
 };
+
