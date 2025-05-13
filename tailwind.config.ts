@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Montserrat', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -61,6 +65,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				football: {
+					primary: '#0A2647',
+					secondary: '#144272',
+					accent: '#2C74B3',
+					highlight: '#37B24D',
+					live: '#E03131',
+					upcoming: '#1864AB',
+					finished: '#868E96',
 				}
 			},
 			borderRadius: {
@@ -84,11 +97,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-live': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-live': 'pulse-live 1.5s ease-in-out infinite'
 			}
 		}
 	},
