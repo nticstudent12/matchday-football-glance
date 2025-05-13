@@ -1,4 +1,4 @@
-import { Match, MatchStatus } from "../types/match";
+import { Match, MatchStatus, Team } from "../types/match";
 
 // Get a formatted date string (YYYY-MM-DD) for a specific date
 const getFormattedDate = (date: Date): string => {
@@ -43,10 +43,7 @@ const teams = [
   { id: "team17", name: "Atletico Madrid", logo: "https://media.api-sports.io/football/teams/530.png" },
   { id: "team18", name: "Sevilla", logo: "https://media.api-sports.io/football/teams/536.png" },
   { id: "team19", name: "Monaco", logo: "https://media.api-sports.io/football/teams/91.png" },
-  { id: "team20", name: "Napoli", logo: "https://media.api-sports.io/football/teams/492.png" },
-  { id: "team21", name: "Lazio", logo: "https://media.api-sports.io/football/teams/487.png" },
-  { id: "team22", name: "RB Leipzig", logo: "https://media.api-sports.io/football/teams/173.png" },
-  { id: "team23", name: "Bayer Leverkusen", logo: "https://media.api-sports.io/football/teams/168.png" }
+  { id: "team20", name: "Napoli", logo: "https://media.api-sports.io/football/teams/492.png" }
 ];
 
 // Competitions data
@@ -55,7 +52,8 @@ const competitions = [
   { id: "comp2", name: "La Liga", logo: "https://media.api-sports.io/football/leagues/140.png" },
   { id: "comp3", name: "Bundesliga", logo: "https://media.api-sports.io/football/leagues/78.png" },
   { id: "comp4", name: "Serie A", logo: "https://media.api-sports.io/football/leagues/135.png" },
-  { id: "comp5", name: "Ligue 1", logo: "https://media.api-sports.io/football/leagues/61.png" }
+  { id: "comp5", name: "Ligue 1", logo: "https://media.api-sports.io/football/leagues/61.png" },
+  { id: "comp6", name: "Champions League", logo: "https://media.api-sports.io/football/leagues/2.png" }
 ];
 
 // Stadiums data
@@ -94,7 +92,7 @@ function getRandomTime(startHour: number, endHour: number): string {
 }
 
 // Function to determine match status based on time
-function determineMatchStatus(matchTimeStr: string, date: string): {status: MatchStatus, scores?: {home: number, away: number}} {
+function determineMatchStatus(matchTimeStr: string, date: string): {status: MatchStatus, homeScore?: number, awayScore?: number} {
   const now = new Date();
   const today = getFormattedDate(now);
   const currentHour = now.getHours();
@@ -111,10 +109,8 @@ function determineMatchStatus(matchTimeStr: string, date: string): {status: Matc
   if (date < today) {
     return { 
       status: "FINISHED",
-      scores: {
-        home: Math.floor(Math.random() * 5),
-        away: Math.floor(Math.random() * 5)
-      }
+      homeScore: Math.floor(Math.random() * 5),
+      awayScore: Math.floor(Math.random() * 5)
     };
   }
   
@@ -126,10 +122,8 @@ function determineMatchStatus(matchTimeStr: string, date: string): {status: Matc
   if (currentTimeInMinutes > matchTimeInMinutes + 120) {
     return { 
       status: "FINISHED",
-      scores: {
-        home: Math.floor(Math.random() * 5),
-        away: Math.floor(Math.random() * 5)
-      }
+      homeScore: Math.floor(Math.random() * 5),
+      awayScore: Math.floor(Math.random() * 5)
     };
   }
   
@@ -137,10 +131,8 @@ function determineMatchStatus(matchTimeStr: string, date: string): {status: Matc
   if (currentTimeInMinutes >= matchTimeInMinutes && currentTimeInMinutes <= matchTimeInMinutes + 120) {
     return { 
       status: "LIVE",
-      scores: {
-        home: Math.floor(Math.random() * 4),
-        away: Math.floor(Math.random() * 4)
-      }
+      homeScore: Math.floor(Math.random() * 4),
+      awayScore: Math.floor(Math.random() * 4)
     };
   }
   
@@ -150,10 +142,10 @@ function determineMatchStatus(matchTimeStr: string, date: string): {status: Matc
 
 // Generate matches for a specific date
 function generateMatchesForDate(date: string, numberOfMatches: number): Match[] {
-  const shuffledTeams = shuffleArray(teams);
-  const shuffledCompetitions = shuffleArray(competitions);
-  const shuffledStadiums = shuffleArray(stadiums);
-  const shuffledReferees = shuffleArray(referees);
+  const shuffledTeams = shuffleArray([...teams]);
+  const shuffledCompetitions = shuffleArray([...competitions]);
+  const shuffledStadiums = shuffleArray([...stadiums]);
+  const shuffledReferees = shuffleArray([...referees]);
   
   const matches: Match[] = [];
   
@@ -180,14 +172,24 @@ function generateMatchesForDate(date: string, numberOfMatches: number): Match[] 
     }
     
     // Determine match status and scores
-    const { status, scores } = determineMatchStatus(matchTime, date);
+    const { status, homeScore, awayScore } = determineMatchStatus(matchTime, date);
     
-    const homeTeam = { ...shuffledTeams[homeTeamIndex] };
-    const awayTeam = { ...shuffledTeams[awayTeamIndex] };
+    // Create team objects with scores if applicable
+    const homeTeam: Team = { 
+      ...shuffledTeams[homeTeamIndex],
+    };
     
-    if (scores) {
-      homeTeam.score = scores.home;
-      awayTeam.score = scores.away;
+    const awayTeam: Team = { 
+      ...shuffledTeams[awayTeamIndex],
+    };
+    
+    // Add scores if they exist (for LIVE or FINISHED matches)
+    if (homeScore !== undefined) {
+      homeTeam.score = homeScore;
+    }
+    
+    if (awayScore !== undefined) {
+      awayTeam.score = awayScore;
     }
     
     matches.push({
@@ -215,7 +217,7 @@ function generateMatchesForDate(date: string, numberOfMatches: number): Match[] 
   });
 }
 
-// Generate all matches data dynamically when module is imported
+// Generate all matches data dynamically
 let allMatches: Match[];
 
 function generateAllMatches(): Match[] {
